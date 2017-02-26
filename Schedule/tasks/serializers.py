@@ -7,6 +7,7 @@ from rest_framework.serializers import (
     HyperlinkedIdentityField,
     SerializerMethodField
 )
+from django.utils import timezone
 from accounts.serializers import UserProfileDetailSerializer
 task_detail_url = HyperlinkedIdentityField(
         view_name='tasks:detail',
@@ -21,7 +22,7 @@ class TaskListSerializer(ModelSerializer):
         lookup_field='title'
     )
     user = SerializerMethodField()
-
+    is_past = SerializerMethodField()
     class Meta:
         model = Task
         fields = [
@@ -32,16 +33,25 @@ class TaskListSerializer(ModelSerializer):
             'title',
             'start_time',
             'end_time',
+            'is_past',
         ]
 
     def get_user(self,obj):
         return str(obj.user.username)
 
+    def get_is_past(self, obj):
+        now = timezone.now()
+        if now <= obj.end_time:
+            return False
+        elif now > obj.end_time:
+            return True
+
 
 class TaskDetailSerializer(ModelSerializer):
     url = task_detail_url
     user = SerializerMethodField()
-    user_profile = UserProfileDetailSerializer(read_only=True)
+    # user_profile = SerializerMethodField()
+    is_past = SerializerMethodField()
 
     class Meta:
         model = Task
@@ -49,15 +59,23 @@ class TaskDetailSerializer(ModelSerializer):
             'url',
             'id',
             'user',
-            'user_profile',
             'title',
             'detail',
             'start_time',
             'end_time',
+            'is_past',
         ]
 
     def get_user(self, obj):
         return str(obj.user.username)
+
+    def get_is_past(self, obj):
+        now = timezone.now()
+        if now <= obj.end_time:
+            return False
+        elif now > obj.end_time:
+            return True
+
 
 
 class TaskCreateUpdateSerializer(ModelSerializer):

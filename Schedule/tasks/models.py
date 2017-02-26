@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 # from accounts.models import
 from django.urls import reverse
-
+import datetime
 WEEK_CHOICES = (
     (1, 'Week 1'), (2, 'Week 2'), (3, 'Week 3'), (4, 'Week 4'), (5, 'Week 5'),
     (6, 'Week 6'), (7, 'Week 7'), (8, 'Week 8'), (9, 'Week 9'), (10, 'Week 10'),
@@ -35,15 +35,32 @@ class Task(models.Model):
     # period_time = models.IntegerField(default=0) # 持续课时
     # day = models.CharField(choices=DAY_CHOICES,blank=True) # 星期
 
-    # def save(self, *args, **kwargs):
-    #     print "save something"
-    #     # self.period_time = self.end_time - self.start_time + 1
-    #     # self.period_week = self.end_week - self.start_week + 1
-    #     super(Task(self).save(*args,**kwargs))
+    def save(self, *args, **kwargs):
+        if self.start_time < self.end_time:
+            super(Task, self).save(*args, **kwargs)
+        elif self.start_time >= self.end_time:
+            self.end_time = self.start_time + datetime.timedelta(1)
+            super(Task, self).save(*args, **kwargs)
+
+
+
 
     def get_absolute_url(self):
         return reverse("tasks:detail", kwargs={'title': self.title})
 
+    def get_seconds(self):
+        return (self.end_time-self.start_time).total_seconds()
+
     def __unicode__(self):
         return self.title
+
+
+# def task_save_receiver(sender, instance, *args, **kwargs):
+#     if instance.start_time < instance.end_time:
+#         return True
+#     else:
+#         return False
+
+
+
 # Create your models here.

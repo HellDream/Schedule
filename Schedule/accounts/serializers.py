@@ -45,6 +45,15 @@ class UserCreateSerializer(ModelSerializer):
         user_obj.save()
         return user_obj
 
+# search for user registered
+class UserSearchSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+        ]
+
 
 class UserProfileDetailSerializer(ModelSerializer):
     username = SerializerMethodField()
@@ -89,6 +98,8 @@ class UserLoginSerializer(ModelSerializer):
         def validate(self, data):
             return data
 
+# serializer to update user profile
+
 
 class UserUpdateSerializer(ModelSerializer):
     username = SerializerMethodField()
@@ -113,3 +124,15 @@ class UserUpdateSerializer(ModelSerializer):
 
     def get_email(self, obj):
         return str(obj.user.email)
+
+
+# serializer to add group
+class UserAddGroupSerializer(ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            'groups',
+        ]
+
+

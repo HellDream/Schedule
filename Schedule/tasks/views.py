@@ -1,6 +1,4 @@
 # from django.shortcuts import render
-# from rest_framework import request
-from django.contrib.auth.models import User
 from .serializers import TaskListSerializer,TaskDetailSerializer,TaskCreateUpdateSerializer
 from rest_framework.generics import (
     ListAPIView,
@@ -13,7 +11,8 @@ from .models import Task
 from rest_framework.permissions import (
     IsAdminUser,
     IsAuthenticated,
-    AllowAny
+    AllowAny,
+    IsAuthenticatedOrReadOnly
 )
 from .permissions import MyIsAuthenticated
 # Create your views here.
@@ -45,15 +44,6 @@ class TaskDetailAPIView(RetrieveAPIView):
     def get_queryset(self, *args, **kwargs):
         queryset = Task.objects.filter(user=self.request.user)
         return queryset
-
-
-    # def get_queryset(self, *args, **kwargs):
-    #     user = self.request.user
-    #     username = user.username
-    #     # user_obj = User.objects.filter(username="qwert")
-    #     user_obj = User.objects.filter(username=username)
-    #     queryset = Task.objects.filter(user=user_obj)
-    #     return queryset
 
 
 class TaskCreateAPIView(CreateAPIView):
@@ -98,20 +88,6 @@ class TaskUpdateAPIView(RetrieveUpdateAPIView):
         queryset = Task.objects.filter(user=self.request.user)
         return queryset
 
-    # def get_queryset(self, *args, **kwargs):
-    #     user = self.request.user
-    #     username = user.username
-    #     # user_obj = User.objects.filter(username="qwert")
-    #     user_obj = User.objects.filter(username=username)
-    #     queryset = Task.objects.filter(user=user_obj)
-    #     return queryset
-
-    # def perform_create(self, serializer):
-    #     user = self.request.user
-    #     username = user.username
-    #     user_obj = User.objects.filter(username=username)
-    #     serializer.save(user=user_obj)
-
 
 class TaskDeleteAPIView(DestroyAPIView):
     serializer_class = TaskDetailSerializer
@@ -122,11 +98,5 @@ class TaskDeleteAPIView(DestroyAPIView):
         queryset = Task.objects.filter(user=self.request.user)
         return queryset
 
-    # def get_queryset(self, *args, **kwargs):
-    #     user = self.request.user
-    #     username = user.username
-    #     # user_obj = User.objects.filter(username="qwert")
-    #     user_obj = User.objects.filter(username=username)
-    #     queryset = Task.objects.filter(user=user_obj)
-    #     return queryset
+
 
