@@ -19,10 +19,14 @@ class Agenda(models.Model):
             self.end_time = self.start_time
             super(Agenda, self).save(*args, **kwargs)
 
+    def get_pass_number(self):
+        return self.pass_number
+
+    def get_has_pass(self):
+        return self.has_pass
 
     def __unicode__(self):
         return self.title
-
 
 
 class PassUser(models.Model):

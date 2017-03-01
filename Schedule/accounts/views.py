@@ -76,7 +76,7 @@ class UserSearchAPIView(ListAPIView):
         queryset_list = User.objects.all()
         query = self.request.GET.get("search")
         if query:
-            queryset_list = queryset_list.filter(Q(username__icontains=query))
+            queryset_list = queryset_list.filter(Q(username__iexact=query))
         return queryset_list
 
 

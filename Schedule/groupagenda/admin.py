@@ -4,7 +4,7 @@ from .models import Agenda, PassUser
 
 
 class AgendaModelAdmin(admin.ModelAdmin):
-    list_display = ["title", "start_time", "end_time", "has_pass", "pass_number"]
+    list_display = ["id", "title", "start_time", "end_time", "has_pass", "pass_number"]
     list_display_links = ["title"]
     search_fields = ["title"]
 
