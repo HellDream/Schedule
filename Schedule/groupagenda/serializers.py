@@ -1,4 +1,5 @@
 from rest_framework.exceptions import ValidationError
+from rest_framework.fields import ChoiceField, DateTimeField
 from rest_framework.serializers import (ModelSerializer,
                                         HyperlinkedIdentityField,
                                         SerializerMethodField,
@@ -13,6 +14,7 @@ class AgendaListSerializer(ModelSerializer):
     class Meta:
         model = Agenda
         fields =[
+            'id',
             'group',
             'title',
             'start_time',
@@ -45,15 +47,33 @@ class AgendaDetailSerializer(ModelSerializer):
         return str(obj.group.name)
 
 
+class AgendaRefreshSerializer(ModelSerializer):
+    # group = SerializerMethodField()
+
+    class Meta:
+        model = Agenda
+        fields=[
+            # 'group',
+            'has_pass',
+            'pass_number',
+        ]
+
+    def get_group(self, obj):
+        return str(obj.group.name)
+
+
 class AgendaCreateSerializer(ModelSerializer):
+    # group = SerializerMethodField()
     class Meta:
         model = Agenda
         fields = [
             'title',
             'detail',
             'start_time',
-            'end_time'
+            'end_time',
+            'group',
         ]
+
 
 
 class GroupCreateSerializer(ModelSerializer):
