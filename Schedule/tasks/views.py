@@ -15,14 +15,15 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly
 )
 from .permissions import MyIsAuthenticated
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 # Create your views here.
 
 
 class TaskListAPIView(ListAPIView):
     serializer_class = TaskListSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'title'
-
+    # authentication_classes = [JSONWebTokenAuthentication]
     def get_queryset(self, *args, **kwargs):
         queryset = Task.objects.filter(user=self.request.user)
         return queryset
@@ -38,7 +39,7 @@ class TaskListAPIView(ListAPIView):
 
 class TaskDetailAPIView(RetrieveAPIView):
     serializer_class = TaskDetailSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'title'
 
     def get_queryset(self, *args, **kwargs):
@@ -48,7 +49,7 @@ class TaskDetailAPIView(RetrieveAPIView):
 
 class TaskCreateAPIView(CreateAPIView):
     serializer_class = TaskCreateUpdateSerializer
-    permission_classes = [IsAuthenticated,IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self, *args, **kwargs):
         queryset = Task.objects.filter(user=self.request.user)
@@ -78,7 +79,7 @@ class TaskCreateAPIView(CreateAPIView):
 
 class TaskUpdateAPIView(RetrieveUpdateAPIView):
     serializer_class = TaskCreateUpdateSerializer
-    permission_classes = [IsAuthenticated,IsAdminUser]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'title'
 
     def perform_create(self, serializer):

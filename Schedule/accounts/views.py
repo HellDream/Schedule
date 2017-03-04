@@ -33,7 +33,7 @@ class UserCreateAPIView(CreateAPIView):
 
 class UserProfileDetailAPIView(RetrieveAPIView):
     serializer_class = UserProfileDetailSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'user_stu_id'
 
     def get_queryset(self):
@@ -50,12 +50,13 @@ class UserLoginAPIView(APIView):
         serializer = UserLoginSerializer(data=data)
         if serializer.is_valid(raise_exception=True):
             new_data = serializer.data
+            print new_data
             return Response(new_data, status=HTTP_200_OK)
         return Response(serializer.errors,status=HTTP_400_BAD_REQUEST)
 
 
 class UserUpdateAPIView(RetrieveUpdateAPIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated]
     serializer_class = UserUpdateSerializer
     lookup_field = 'user_stu_id'
     queryset = UserProfile.objects.all()
@@ -65,6 +66,7 @@ class UserUpdateAPIView(RetrieveUpdateAPIView):
     search for user via username
     haven't put in url yet
 '''
+
 
 class UserSearchAPIView(ListAPIView):
     permission_classes = [AllowAny]
@@ -84,7 +86,7 @@ class UserSearchAPIView(ListAPIView):
 
 
 class UserAddGroupAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated]
     # serializer_class = UserAddGroupSerializer
 
     def post(self, request, format=None):

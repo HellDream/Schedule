@@ -1,6 +1,9 @@
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse_lazy
+
+from tasks.models import Task
 from .models import UserProfile
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from rest_framework.serializers import (
     CharField,
     EmailField,
@@ -43,7 +46,15 @@ class UserCreateSerializer(ModelSerializer):
         user_obj = User(username=username,email=email)
         user_obj.set_password(password)
         user_obj.save()
-
+        content_type = ContentType.objects.get_for_model(Task)
+        permission_to_add = Permission.objects.get(codename="add_task",
+                                               content_type=content_type)
+        permission_to_change = Permission.objects.get(codename="change_task",
+                                               content_type=content_type)
+        permission_to_delete = Permission.objects.get(codename="delete_task",
+                                               content_type=content_type)
+        user_obj.user_permissions.add(permission_to_add,permission_to_change,permission_to_delete)
+        print "succeed create a user"
         return user_obj
 
 
@@ -100,6 +111,8 @@ class UserLoginSerializer(ModelSerializer):
 
         def validate(self, data):
             return data
+
+
 
 # serializer to update user profile
 
