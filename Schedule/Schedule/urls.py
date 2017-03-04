@@ -19,8 +19,9 @@ from rest_framework_jwt.views import obtain_jwt_token
 # from groupagenda.views import GroupListAPIView, GroupCreateAPIView
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'auth/token/', obtain_jwt_token),
     url(r'tasks/', include('tasks.urls', namespace='tasks')),
-    url(r'auth/token/',obtain_jwt_token),
     url(r'accounts/',include('accounts.urls', namespace='accounts')),
     url(r'group-agenda/', include('groupagenda.urls', namespace='groupagenda')),
 ]
