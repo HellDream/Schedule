@@ -1,3 +1,5 @@
+import json
+
 from django.db.models import Q, F
 from django.http import Http404
 from django.shortcuts import render
@@ -13,7 +15,8 @@ from .serializers import (AgendaListSerializer,
                           AgendaCreateSerializer,
                           AgendaRefreshSerializer,
                           GroupCreateSerializer,
-                          GroupListSerializer)
+                          GroupListSerializer,
+                          NumberInGroupSerializer)
 from rest_framework.generics import (RetrieveAPIView,
                                      CreateAPIView,
                                      RetrieveUpdateAPIView,
@@ -82,7 +85,7 @@ class AgendaDetailAPIView(APIView):
 
 class AgendaRefreshAPIView(APIView):
     # need to rewrite a permission for the agenda to check if the user is in the related group
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def get_object(self, group_id, pk):
         print group_id
@@ -129,8 +132,9 @@ class AgendaCreateAPIView(CreateAPIView):
         serializer.save()
 
 
-'''updated agenda create api view'''
 class AgendaPostAPIView(APIView):
+    """updated agenda create api view"""
+    serializer_class = AgendaCreateSerializer
 
     def get_object(self, group_id):
         print group_id
@@ -143,17 +147,22 @@ class AgendaPostAPIView(APIView):
             raise Http404
 
     def post(self, request, group_id, *args, **kwargs):
-        data = eval(request.data)
-        print data
+        data = request.data
+        print type(data)
         title = data['title']
         detail = data['detail']
-        start_time = data['start_time'],
-        end_time = data['end_time'],
+        start_time = data['start_time']
+        end_time = data['end_time']
+        print type(start_time)
         group = Group.objects.get(id=group_id)
-        agenda = Agenda.objects.create(title=title, start_time=start_time, detail=detail, end_time=end_time,group=group)
-        serializer = AgendaCreateSerializer(agenda)
-        print serializer
+        agenda = Agenda.objects.create(title=title,
+                                       start_time=start_time,
+                                       detail=detail,
+                                       end_time=end_time,
+                                       group=group)
+        serializer = AgendaCreateSerializer(agenda, data=data)
         if serializer.is_valid():
+            print serializer.data
             return Response(serializer.data, status=HTTP_201_CREATED)
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
@@ -169,8 +178,12 @@ def agenda_create(request, group_id):
         end_time = data['end_time']
         print data
         print type(data)
-        agenda = Agenda.objects.create(title=title, start_time=start_time, detail=detail, end_time=end_time,group=group)
-        serializer = AgendaCreateSerializer(agenda, data=data )
+        agenda = Agenda.objects.create(title=title,
+                                       start_time=start_time,
+                                       detail=detail,
+                                       end_time=end_time,
+                                       group=group)
+        serializer = AgendaCreateSerializer(agenda, data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=HTTP_201_CREATED)
@@ -178,8 +191,11 @@ def agenda_create(request, group_id):
 
 
 class GroupCreateAPIView(CreateAPIView):
+    """
+    the api view of creating a group
+    """
     serializer_class = GroupCreateSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self, *args, **kwargs):
         queryset = Group.objects.filter(user=self.request.user)
@@ -194,10 +210,11 @@ class GroupCreateAPIView(CreateAPIView):
         created_group = Group.objects.get(name=name)
         user.groups.add(created_group)
 
-'''
-    Here to show all the group and search for the group via name
-'''
+
 class GroupListAPIView(ListAPIView):
+    """
+    Here to show all the group and search for the group via name
+    """
     serializer_class = GroupListSerializer
     permission_classes = [AllowAny]
     search_fields = ['name']
@@ -211,9 +228,8 @@ class GroupListAPIView(ListAPIView):
         return queryset_list
 
 
-
-
-
-
-
-
+class NumberInGroupAPIView(RetrieveAPIView):
+    serializer_class = NumberInGroupSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = "id"
+    queryset = Group.objects.all()

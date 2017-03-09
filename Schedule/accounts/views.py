@@ -51,6 +51,8 @@ class UserLoginAPIView(APIView):
         if serializer.is_valid(raise_exception=True):
             new_data = serializer.data
             print new_data
+            user = User.objects.get(username=new_data['username'])
+
             return Response(new_data, status=HTTP_200_OK)
         return Response(serializer.errors,status=HTTP_400_BAD_REQUEST)
 
@@ -87,21 +89,16 @@ class UserSearchAPIView(ListAPIView):
 
 class UserAddGroupAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    # serializer_class = UserAddGroupSerializer
+    serializer_class = UserAddGroupSerializer
 
-    def post(self, request, format=None):
-        data = request.data
-        current_user = self.request.user
-        serializer = UserAddGroupSerializer(data=data)
-        print data
-        print serializer
-        group_name = data['groups']
-        join_group = Group.objects.get(name=group_name)
-        if join_group.exists():
-            current_user.groups.add(join_group)
-            print "11111"
+    def get(self, request, group_id, *args, **kwargs):
+        user = self.request.user
+        group = Group.objects.get(id=group_id)
+        user.groups.add(group)
+        serializer = UserAddGroupSerializer(user, data=request.data)
+        if serializer.is_valid():
             return Response(serializer.data, status=HTTP_200_OK)
-        return Response({"message": "cannot find the group"})
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -113,4 +110,27 @@ def add_group2(request, username, group_id):
     return Response(serializer.data, status=HTTP_200_OK)
 
 
+# @api_view(['GET'])
+# def remove_from_group(request, group_id):
+#     user = request.user
+#     group = Group.objects.get(id=group_id)
+#     user.groups.remove(group)
+#     serializer = UserAddGroupSerializer(user)
+#     if serializer.is_valid():
+#         return Response(serializer.data, status=HTTP_200_OK)
+#     return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
+
+class RemoveGroupAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_classes = UserAddGroupSerializer
+
+    def get(self, request, group_id, *args, **kwargs):
+        data = request.data
+        user = self.request.user
+        group = Group.objects.get(id=group_id)
+        user.groups.remove(group)
+        serializer = UserAddGroupSerializer(user, data=data)
+        if serializer.is_valid():
+            return Response(serializer.data, status=HTTP_200_OK)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)

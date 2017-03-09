@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse_lazy
-
+# from rest_framework_jwt.compat import PasswordField
+# from rest_framework_jwt.serializers import JSONWebTokenSerializer
 from tasks.models import Task
 from .models import UserProfile
 from django.contrib.auth.models import User, Permission
@@ -58,9 +59,11 @@ class UserCreateSerializer(ModelSerializer):
         return user_obj
 
 
-
-# search for user registered
 class UserSearchSerializer(ModelSerializer):
+    """
+    search for user registered
+    """
+
     class Meta:
         model = User
         fields = [
@@ -97,7 +100,7 @@ class UserProfileDetailSerializer(ModelSerializer):
 class UserLoginSerializer(ModelSerializer):
     token = CharField(read_only=True,allow_blank=True)
     username = CharField()
-
+    # password = PasswordField()
     class Meta:
         model = User
         fields = [
@@ -113,11 +116,10 @@ class UserLoginSerializer(ModelSerializer):
             return data
 
 
-
-# serializer to update user profile
-
-
 class UserUpdateSerializer(ModelSerializer):
+    """
+    Serializer to update user profile
+    """
     username = SerializerMethodField()
     email = SerializerMethodField()
 
@@ -142,9 +144,10 @@ class UserUpdateSerializer(ModelSerializer):
         return str(obj.user.email)
 
 
-# serializer to add group
 class UserAddGroupSerializer(ModelSerializer):
-
+    """
+    Serializer to add and remove group.
+    """
     class Meta:
         model = User
         fields = [

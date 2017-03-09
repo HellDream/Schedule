@@ -16,6 +16,7 @@ from rest_framework.permissions import (
 )
 from .permissions import MyIsAuthenticated
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+from rest_framework.authentication import SessionAuthentication
 # Create your views here.
 
 
@@ -50,7 +51,7 @@ class TaskDetailAPIView(RetrieveAPIView):
 class TaskCreateAPIView(CreateAPIView):
     serializer_class = TaskCreateUpdateSerializer
     permission_classes = [IsAuthenticated]
-
+    authentication_classes = [SessionAuthentication]
     def get_queryset(self, *args, **kwargs):
         queryset = Task.objects.filter(user=self.request.user)
         return queryset
