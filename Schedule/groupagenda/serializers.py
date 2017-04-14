@@ -1,11 +1,11 @@
 from rest_framework.exceptions import ValidationError
+from rest_framework.fields import ImageField
 from rest_framework.serializers import (ModelSerializer,
-                                        HyperlinkedIdentityField,
                                         SerializerMethodField,
                                         CharField)
 from django.contrib.auth.models import Group, ContentType, Permission, User
 from .utils import get_count
-from .models import Agenda, PassUser
+from .models import Agenda, PassUser, GroupProfile
 
 
 class AgendaListSerializer(ModelSerializer):
@@ -75,15 +75,63 @@ class AgendaCreateSerializer(ModelSerializer):
         ]
 
 
+class GroupProfileDetailSerializer(ModelSerializer):
+    group = SerializerMethodField()
+
+    class Meta:
+        model = GroupProfile
+        fields = [
+            'group',
+            'description',
+            'picture',
+        ]
+
+    def get_group(self, obj):
+        return obj.group.name
+
+    def get_picture(self, obj):
+        try:
+            picture = obj.picture.url
+        except:
+            picture = None
+        return picture
+
+
+class GroupProfileUpdateSerializer(ModelSerializer):
+    picture = ImageField(use_url=True, allow_empty_file=True, allow_null=True)
+    group = SerializerMethodField()
+
+    class Meta:
+        model = GroupProfile
+        fields = [
+            'group',
+            'description',
+            'picture',
+        ]
+
+    def get_group(self, obj):
+        return obj.group.name
+
+    def get_picture(self, obj):
+        try:
+            picture = obj.picture.url
+        except:
+            picture = None
+        return picture
+
 
 class GroupCreateSerializer(ModelSerializer):
     """To create a group with certain permissions"""
     name = CharField(label="group name")
+    group_profile = GroupProfileDetailSerializer(write_only=True)
+    profile = GroupProfileDetailSerializer(read_only=True)
 
     class Meta:
         model = Group
         fields = [
-            'name'
+            'name',
+            'group_profile',
+            'profile',
         ]
 
     def validate_name(self, data):
@@ -94,6 +142,11 @@ class GroupCreateSerializer(ModelSerializer):
             raise ValidationError("This group name has been created")
         return data
 
+    def create_group_profile(self, group_obj, profile_data):
+        description = profile_data['description']
+        group_profile = GroupProfile(group=group_obj, description=description)
+        group_profile.save()
+
     def create(self, validated_data):
         name = validated_data['name']
         group_obj = Group(name=name)
@@ -101,13 +154,14 @@ class GroupCreateSerializer(ModelSerializer):
         content_type = ContentType.objects.get_for_model(Agenda)
         permission = Permission.objects.create(codename=name,
                                                content_type=content_type)
-        add_permission = Permission.objects.add(codename="change_agenda",
+        add_permission = Permission.objects.get(codename="change_agenda",
                                                 content_type=content_type)
-        delete_permission = Permission.objects.add(codename="delete_agenda",
+        delete_permission = Permission.objects.get(codename="delete_agenda",
                                                    content_type=content_type)
         group_obj.permissions.add(permission,
                                   add_permission,
                                   delete_permission)
+        self.create_group_profile(group_obj, validated_data['group_profile'])
         print "succeed"
         return group_obj
 
@@ -152,8 +206,6 @@ class GroupDetailSerializer(ModelSerializer):
         return str(obj.agenda.title)
 
 
-
-"""------------------------------------------------------------------------------------"""
 class NumberInGroupSerializer(ModelSerializer):
     """ Serializer of the number in the group with """
     first_day = SerializerMethodField()
@@ -215,9 +267,9 @@ class NumberInGroupSerializer(ModelSerializer):
 
     def get_sixth_day(self, obj):
         day_dict = {'6:00-8:00': get_count(obj, 6, 5), '8:00-10:00': get_count(obj, 8, 5),
-                          '10:00-12:00': get_count(obj, 10, 5), '12:00-14:00': get_count(obj, 12, 5),
-                          '14:00-16:00': get_count(obj, 14, 5), '16:00-18:00': get_count(obj, 16, 5),
-                          '18:00-20:00': get_count(obj, 18, 5), '20:00-22:00': get_count(obj, 20, 5)}
+                    '10:00-12:00': get_count(obj, 10, 5), '12:00-14:00': get_count(obj, 12, 5),
+                    '14:00-16:00': get_count(obj, 14, 5), '16:00-18:00': get_count(obj, 16, 5),
+                    '18:00-20:00': get_count(obj, 18, 5), '20:00-22:00': get_count(obj, 20, 5)}
         return day_dict
 
     def get_seventh_day(self, obj):

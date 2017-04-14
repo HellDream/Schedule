@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import Permission
-from .models import Agenda, PassUser
+from .models import Agenda, PassUser, GroupProfile
 
 
 class AgendaModelAdmin(admin.ModelAdmin):
@@ -19,8 +19,15 @@ class PassUserModelAdmin(admin.ModelAdmin):
     class Meta:
         model = PassUser
 
+
+class GroupProfileModelAdmin(admin.ModelAdmin):
+    list_display = ["id", "group"]
+    list_display_links = ["id"]
+
+    class Meta:
+        model = GroupProfile
 admin.site.register(Permission)
 admin.site.register(Agenda, AgendaModelAdmin)
 admin.site.register(PassUser, PassUserModelAdmin)
-
+admin.site.register(GroupProfile, GroupProfileModelAdmin)
 # Register your models here.

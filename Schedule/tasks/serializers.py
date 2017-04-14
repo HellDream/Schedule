@@ -77,7 +77,6 @@ class TaskDetailSerializer(ModelSerializer):
             return True
 
 
-
 class TaskCreateUpdateSerializer(ModelSerializer):
 
     class Meta:

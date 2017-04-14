@@ -1,30 +1,30 @@
 import json
 
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q, F
 from django.http import Http404
-from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_200_OK
 from rest_framework.views import APIView
-
-from .models import Agenda, PassUser
+from .utils import get_count_for_date
+from .models import Agenda, GroupProfile
 from .serializers import (AgendaListSerializer,
                           AgendaDetailSerializer,
                           AgendaCreateSerializer,
                           AgendaRefreshSerializer,
                           GroupCreateSerializer,
                           GroupListSerializer,
-                          NumberInGroupSerializer)
+                          NumberInGroupSerializer,
+                          GroupProfileDetailSerializer, GroupProfileUpdateSerializer)
 from rest_framework.generics import (RetrieveAPIView,
                                      CreateAPIView,
-                                     RetrieveUpdateAPIView,
                                      ListAPIView)
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAdminUser,
                                         AllowAny)
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 
 
 class AgendaListAPIView(ListAPIView):
@@ -43,26 +43,10 @@ class AgendaListAPIView(ListAPIView):
         print current_group_set
         return current_group_set
 
-# WRONG Detail for agenda!!!
-# class AgendaDetailAPIView(RetrieveAPIView):
-#     serializer_class = AgendaDetailSerializer
-#     permission_classes = [IsAuthenticated, IsAdminUser]
-#
-#     def get_queryset(self,group_id, *args, **kwargs):
-#         queryset = Agenda.objects.filter(group=None)
-#         for group in self.get_current_group(group_id):
-#             _queryset = Agenda.objects.filter(group=group)
-#             queryset = queryset |_queryset
-#         return queryset
-#
-#     def get_current_group(self, group_id):
-#         current_group_set = Group.objects.filter(id=group_id,user=self.request.user)
-#         print current_group_set
-#         return current_group_set
-
 
 class AgendaDetailAPIView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
+
     def get_object(self, group_id, pk):
         print group_id
         print pk
@@ -205,10 +189,47 @@ class GroupCreateAPIView(CreateAPIView):
         user = self.request.user
         serializer.save(user=user)
         data = serializer.data
-        print data
         name = data['name']
         created_group = Group.objects.get(name=name)
         user.groups.add(created_group)
+
+
+class GroupProfileDetailAPIView(APIView):
+    serializer_class = GroupProfileDetailSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, group_id, *args, **kwargs):
+        data = request.data
+        print data
+        try:
+            group = Group.objects.get(id=group_id)
+            group_profile = GroupProfile.objects.get(group=group)
+        except Group.DoesNotExist:
+            raise Http404
+        except GroupProfile.DoesNotExist:
+            raise Http404
+        serializer = GroupProfileDetailSerializer(group_profile, data=data)
+        if serializer.is_valid(raise_exception=True):
+            return Response(serializer.data, status=HTTP_200_OK)
+
+
+class GroupProfileUpdateAPIView(APIView):
+    serializer_class = GroupProfileUpdateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, group_id, *args, **kwargs):
+        data = request.data
+        try:
+            group = Group.objects.get(id=group_id)
+            group_profile = GroupProfile.objects.get(group=group)
+        except Group.DoesNotExist:
+            raise Http404
+        except GroupProfile.DoesNotExist:
+            raise Http404
+        serializer = GroupProfileDetailSerializer(group_profile, data=data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=HTTP_200_OK)
 
 
 class GroupListAPIView(ListAPIView):
@@ -233,3 +254,25 @@ class NumberInGroupAPIView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     lookup_field = "id"
     queryset = Group.objects.all()
+
+@login_required
+@api_view(['GET'])
+def number_in_group(request, group_id, date):
+    user = request.user
+    try:
+        group = Group.objects.get(id=group_id)
+    except Group.DoesNotExist:
+        raise Http404
+    day_dict = {
+        'name': group.name,
+        date: {
+            '8:00-10:00': get_count_for_date(obj=group, hour=8, date=date),
+            '10:00-12:00': get_count_for_date(obj=group, hour=12, date=date),
+            '14:00-16:00': get_count_for_date(obj=group, hour=14, date=date),
+            '16:00-18:00': get_count_for_date(obj=group, hour=16, date=date),
+            '18:00-20:00': get_count_for_date(obj=group, hour=18, date=date),
+            '20:00-22:00': get_count_for_date(obj=group, hour=20, date=date),
+        }
+    }
+    return Response(day_dict, status=HTTP_200_OK)
+

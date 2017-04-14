@@ -30,7 +30,25 @@ class Agenda(models.Model):
 
 
 class PassUser(models.Model):
-    name = models.CharField(max_length=120, default='')
+    name = models.CharField(max_length=120, default='', blank=True)
     Agenda = models.ForeignKey(Agenda)
+
+
+def upload_location(instance, filename):
+    #filebase, extension = filename.split(".")
+    #return "%s/%s.%s" %(instance.id, instance.id, extension)
+    ProfileModel = instance.__class__
+    new_id = ProfileModel.objects.order_by("id").last().id + 1
+
+    return "group/%s/%s" %(new_id, filename)
+
+
+class GroupProfile(models.Model):
+    group = models.OneToOneField(Group)
+    description = models.TextField(default='',blank=True)
+    picture = models.ImageField(upload_to=upload_location, blank=True, null=True)
+
+    def __unicode__(self):
+        return self.group.name
 
 # Create your models here.
