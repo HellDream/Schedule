@@ -255,6 +255,7 @@ class NumberInGroupAPIView(RetrieveAPIView):
     lookup_field = "id"
     queryset = Group.objects.all()
 
+
 @login_required
 @api_view(['GET'])
 def number_in_group(request, group_id, date):

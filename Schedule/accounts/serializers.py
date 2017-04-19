@@ -115,7 +115,7 @@ class UserCreateSerializer(ModelSerializer):
                          style={'input_type': 'password'})
     password_confirm = CharField(label='Confirm Password',
                                  write_only=True,
-                                 style={'input_type':'password'})
+                                 style={'input_type': 'password'})
     user_profile = UserProfileCreateSerializer(write_only=True)
     profile = UserProfileCreateSerializer(read_only=True)
 

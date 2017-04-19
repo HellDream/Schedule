@@ -144,7 +144,7 @@ class GroupCreateSerializer(ModelSerializer):
 
     def create_group_profile(self, group_obj, profile_data):
         description = profile_data['description']
-        group_profile = GroupProfile(group=group_obj, description=description)
+        group_profile = GroupProfile(group=group_obj, description=description, picture=profile_data['picture'])
         group_profile.save()
 
     def create(self, validated_data):
