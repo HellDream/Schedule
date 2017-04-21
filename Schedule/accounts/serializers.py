@@ -3,7 +3,7 @@ from django.urls import reverse_lazy
 from rest_framework.fields import BooleanField, NullBooleanField
 from rest_framework_jwt.serializers import JSONWebTokenSerializer
 from tasks.models import Task
-from .models import UserProfile
+from .models import UserProfile,upload_location
 from django.contrib.auth.models import User, Permission
 from rest_framework.serializers import (
     CharField,
@@ -87,6 +87,11 @@ class UserUpdateSerializer(ModelSerializer):
             picture = None
         return picture
 
+    def update(self, instance, validated_data):
+        if validated_data['picture'] is None and instance.picture is not None:
+            validated_data['picture'] = instance.picture
+        return super(UserUpdateSerializer, self).update(instance, validated_data)
+
 
 class UserProfileCreateSerializer(ModelSerializer):
     user = SerializerMethodField()
@@ -164,11 +169,11 @@ class UserCreateSerializer(ModelSerializer):
         return value
 
     def create_user_profile(self,user_obj , profile_data):
-        nickname = profile_data['real_name']
+        real_name = profile_data['real_name']
         student_id = profile_data['user_stu_id']
         school = profile_data['school']
         user_profile = UserProfile(user=user_obj,
-                                   nickname=nickname,
+                                   real_name=real_name,
                                    user_stu_id=student_id,
                                    school=school)
         user_profile.save()

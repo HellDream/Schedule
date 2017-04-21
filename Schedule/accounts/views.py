@@ -51,27 +51,6 @@ class UserProfileDetailAPIView(ListAPIView):
         return queryset
 
 
-# class UserUpdateAPIView(UpdateAPIView):
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = UserUpdateSerializer
-#
-#     def get(self, request, *args, **kwargs):
-#         data = request.data
-#         user = request.user
-#         try:
-#             user_profile = UserProfile.objects.get(user=user)
-#             serializer = UserUpdateSerializer(user_profile, data=data)
-#             print serializer
-#             if serializer.is_valid(raise_exception=True):
-#                 return Response(serializer.data, status=HTTP_200_OK)
-#         except UserProfile.DoesNotExist:
-#             raise Http404
-#
-#     def get_queryset(self):
-#         queryset = UserProfile.objects.filter(user=self.request.user)
-#         return queryset
-
-
 class UserUpdateAPIView(APIView):
     """
     wait for modification
@@ -80,17 +59,44 @@ class UserUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
     # parser_classes = [FileUploadParser]
 
-    def put(self, request, *args, **kwargs):
-        data = request.data
+    def get_object(self):
         user = self.request.user
         try:
             user_profile = UserProfile.objects.get(user=user)
-            serializer = UserUpdateSerializer(user_profile, data=data)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                return Response(serializer.data, status=HTTP_200_OK)
         except UserProfile.DoesNotExist:
             raise Http404
+        return user_profile
+
+    def get(self, request, *args, **kwargs):
+        user_profile = self.get_object()
+        serializer = UserUpdateSerializer(user_profile, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            return Response(serializer.data, status=HTTP_200_OK)
+
+    def put(self, request, *args, **kwargs):
+        data = request.data
+        user_profile = self.get_object()
+        try:
+            picture = user_profile.picture
+            print type(picture)
+        except:
+            picture = None
+        if data['picture'] is None and picture is not None:
+            data['picture'] = picture
+        print data['picture']
+        serializer = UserUpdateSerializer(user_profile, data=data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=HTTP_200_OK)
+
+
+    def patch(self, request, *args, **kwargs):
+        data = request.data
+        user_profile = self.get_object()
+        serializer = UserUpdateSerializer(user_profile, data=data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=HTTP_200_OK)
 
 
 class UserCreateAPIView(CreateAPIView):

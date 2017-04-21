@@ -119,6 +119,11 @@ class GroupProfileUpdateSerializer(ModelSerializer):
             picture = None
         return picture
 
+    def update(self, instance, validated_data):
+        if validated_data['picture'] is None and instance.picture is not None:
+            validated_data['picture'] = instance.picture
+        return super(GroupProfileUpdateSerializer, self).update(instance, validated_data)
+
 
 class GroupCreateSerializer(ModelSerializer):
     """To create a group with certain permissions"""
@@ -215,7 +220,7 @@ class NumberInGroupSerializer(ModelSerializer):
     fifth_day = SerializerMethodField()
     sixth_day = SerializerMethodField()
     seventh_day = SerializerMethodField()
-    # six_to_eight = SerializerMethodField()
+
     class Meta:
         model = Group
         fields = [
@@ -227,14 +232,14 @@ class NumberInGroupSerializer(ModelSerializer):
             'fifth_day',
             'sixth_day',
             'seventh_day',
-            # 'six_to_eight',
         ]
 
     def get_first_day(self, obj):
-        day_dict = {'6:00-8:00': get_count(obj, 6, 0), '8:00-10:00': get_count(obj, 8, 0),
+        day_dict = {'06:00-08:00': get_count(obj, 6, 0), '08:00-10:00': get_count(obj, 8, 0),
                     '10:00-12:00': get_count(obj, 10, 0), '12:00-14:00': get_count(obj, 12, 0),
                     '14:00-16:00': get_count(obj, 14, 0), '16:00-18:00': get_count(obj, 16, 0),
-                    '18:00-20:00': get_count(obj, 18, 0), '20:00-22:00': get_count(obj, 20, 0)}
+                    '18:00-20:00': get_count(obj, 18, 0), '20:00-22:00': get_count(obj, 20, 0),
+                    }
         return day_dict
 
     def get_second_day(self, obj):
